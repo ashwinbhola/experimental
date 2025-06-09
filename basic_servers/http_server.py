@@ -82,7 +82,7 @@ def recv_client_request(client_conn):
     while blank_line_delim not in full_message:
         message = client_conn.recv(10)
         if not message:
-            return None
+            return None  # None here would make the server terminate the connection
         full_message += message
 
     header_data, _, request_body = full_message.partition(blank_line_delim)
@@ -99,11 +99,13 @@ def recv_client_request(client_conn):
     if "content-length" not in headers:
         return (method, path, headers, None)
     
+    # keep recieiving the remaining bytes of request body
+    # until we have covered content_length bytes
     content_length = int(headers["content-length"])
     while len(request_body) < content_length:
-        message = client_conn.recv(1024)
+        message = client_conn.recv(10)
         if not message:
-            return None
+            return None  # None here would make the server terminate the connection
         request_body += message
     
     return (method, path, headers, request_body.decode("utf-8"))
