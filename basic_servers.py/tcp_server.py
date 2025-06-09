@@ -12,20 +12,19 @@ def handle_request(request_msg):
 
 def handle_client(client_conn, client_address):
     """Client handler."""
-    with client_conn:
-        while True:
-            message = client_conn.recv(1024).decode("utf-8")
-            print(f"[{client_address}] -> {message}")
-            if not message:
-                # Exit the infinite while loop if the client has terminated the connection
-                print(f"Terminated the connection with client: {client_address}")
-                break
-            
-            response = handle_request(message)
-            
-            # Unlike send(), this method continues to send data 
-            # from bytes until either all data has been sent or an error occurs
-            client_conn.sendall(response.encode("utf-8"))
+    while True:
+        message = client_conn.recv(1024).decode("utf-8")
+        print(f"[{client_address}] -> {message}")
+        if not message:
+            # Exit the infinite while loop if the client has terminated the connection
+            print(f"Client {client_address} has terminated the connection")
+            break
+        
+        response = handle_request(message)
+        
+        # Unlike send(), this method continues to send data 
+        # from bytes until either all data has been sent or an error occurs
+        client_conn.sendall(response.encode("utf-8"))
 
 
 def start_server():
