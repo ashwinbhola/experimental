@@ -17,3 +17,13 @@ Connecting to the UDP server using netstat:
 ```
 netcat localhost 8080 -c -u
 ```
+
+To run the HTTP server:
+```
+python3 http_server.py
+```
+
+The HTTP server can be tested by sending the requests in `http_client.py`
+```
+python3 http_client.py
+```
