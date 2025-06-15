@@ -17,13 +17,27 @@ async def echo(websocket):
                 if client != websocket:
                     await client.send(msg)
     except websockets.exceptions.ConnectionClosed:
-        print("Client disconnected.")
+        print("=== Abnormal connection closure ===")
     finally:
         connected_clients.remove(websocket)
+        print(f"Close code: {websocket.close_code}")
+        print(f"Reason: {websocket.close_reason}")
+        print("======")
+
+
+async def process_request(path, request):
+    print("=== Handshake Request ===")
+    print(f"Request path: {request.path}")
+    for header, value in request.headers.raw_items():
+        print(f"{header}: {value}")
+    print("=================================")
+    return None  # Accept the connection
 
 
 async def main():
-    server = await websockets.serve(echo, SERVER_ADDRESS, SERVER_PORT)
+    server = await websockets.serve(
+        echo, SERVER_ADDRESS, SERVER_PORT, process_request=process_request
+    )
     print(f"Server started at ws://{SERVER_ADDRESS}:{SERVER_PORT}")
     await asyncio.Future()  # run forever
 

@@ -9,7 +9,7 @@ async def send_messages(server):
         message = await loop.run_in_executor(None, sys.stdin.readline)
         message = message.strip()
         if message.lower() == "quit":
-            await server.close()
+            await server.close(code=1000, reason="Client says bye")
             break
         await server.send(message)
 
@@ -20,12 +20,23 @@ async def receive_messages(server):
             message = await server.recv()
             print(f"\nReceived: {message}\nYou: ", end="", flush=True)
     except websockets.exceptions.ConnectionClosed:
-        print("\nDisconnected from server.")
+        print("=== Client closed ===")
+        print(f"Close code: {server.close_code}")
+        print(f"Reason: {server.close_reason}")
+        print("======")
+        
 
 
 async def main():
     server_address = "ws://127.0.0.1:8080"
     server = await websockets.connect(server_address)
+
+    print("=== Handshake Response ===")
+    print(f"Response body: {server.response.body.decode('utf-8')}")
+    print(f"Response reason: {server.response.reason_phrase}")
+    for header, value in server.response.headers.raw_items():
+        print(f"{header}: {value}")
+    print("==================================")
 
     await asyncio.gather(
         send_messages(server),
