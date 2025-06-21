@@ -1,3 +1,15 @@
+To start kafka:
+```
+brew services start zookeeper
+brew services start kafka
+```
+
+To stop kafka:
+```
+brew services stop kafka
+brew services stop zookeeper
+```
+
 To create a topic:
 ```
 kafka-topics --create --topic test-topic --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
