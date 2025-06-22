@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+// Namespace for the protobuf definitions below
+package calculator;
+
+
+enum ArithmeticOperation {
+    ADD = 0;
+    MULTIPLY = 1;
+}
+
+message CalculateRequest {
+    ArithmeticOperation operation = 1;
+    repeated float nums = 2; 
+}
+
+message CalculateResponse {
+    float result = 1;
+}
+
+
+// The service definition
+service Calculator {
+  // Unary RPC method Calculate
+  rpc Calculate (CalculateRequest) returns (CalculateResponse);
+}
+
