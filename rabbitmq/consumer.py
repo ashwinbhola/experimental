@@ -28,9 +28,6 @@ connection = pika.BlockingConnection(
 # many such channels
 channel = connection.channel()
 
-# Declare exchange of type "direct". A direct exchange delivers a 
-# message to its bound queues with a matching routing key
-# channel.exchange_declare(exchange="proto_exch", exchange_type="direct")
 
 channel.basic_consume(queue="proto_queue",
                       on_message_callback=message_callback,
