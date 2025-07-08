@@ -1,3 +1,5 @@
+from functools import wraps
+
 from flask import Blueprint, current_app, render_template, request, redirect, url_for, flash, make_response
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -7,13 +9,25 @@ from forms import LoginForm, RegisterForm
 
 auth_bp = Blueprint("auth", __name__)
 
+def logged_in_redirect(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if (session_id := request.cookies.get("session_id")):
+            user_id = current_app.session_manager.get_user_from_session(session_id)
+            if user_id:
+                return redirect(url_for("dashboard"))
+
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def render_register_form(form):
+    return render_template("register.html", form=form)
+
 
 @auth_bp.route("/register", methods=["GET", "POST"])
+@logged_in_redirect
 def register():
-    if (session_id := request.cookies.get("session_id")):
-        user_id = current_app.session_manager.get_user_from_session(session_id)
-        if user_id:
-            return redirect(url_for("dashboard"))
 
     form = RegisterForm()
 
@@ -39,20 +53,20 @@ def register():
         flash("Registration successful. Please log in.", "success")
         return redirect(url_for("auth.login"))
     
-    return render_template("register.html", form=form)
+    
+    return render_register_form(form)
+
+
+def render_login_form(form):
+    return render_template("login.html", form=form)
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
+@logged_in_redirect
 def login():
-    if (session_id := request.cookies.get("session_id")):
-        user_id = current_app.session_manager.get_user_from_session(session_id)
-        if user_id:
-            return redirect(url_for("dashboard"))
-
     form = LoginForm()
 
     if form.validate_on_submit():
-
         user = User.query.filter_by(username=form.username.data).first()
 
         if user is None or not check_password_hash(user.password_hash, form.password.data):
@@ -60,18 +74,16 @@ def login():
             return redirect(url_for("auth.login"))
 
         user_id = user.user_id
-        print(f"User exists!: {user_id}")
         session_id = current_app.session_manager.generate_session_id()
         current_app.session_manager.store_session_in_redis(session_id, user_id)
 
-        print("Success")
         flash("Login successful.", "success")
 
         resp = make_response(redirect(url_for("dashboard")))
         current_app.session_manager.set_session_cookie(resp, session_id)
         return resp
     
-    return render_template("login.html", form=form)
+    return render_login_form(form)
 
 
 @auth_bp.route('/logout')
