@@ -12,8 +12,4 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    SESSION_TYPE = "redis"
-    SESSION_USE_SIGNER = True
-    SESSION_REDIS = Redis(host="127.0.0.1", port=6379)
-    PERMANENT_SESSION_LIFETIME = timedelta(minutes=30) 
-    SESSION_COOKIE_NAME = "session_cookie"
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=10)

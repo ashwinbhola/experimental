@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, current_app, render_template, request, redirect, url_for, flash, make_response
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from models import db, User
@@ -7,8 +7,14 @@ from forms import LoginForm, RegisterForm
 
 auth_bp = Blueprint("auth", __name__)
 
+
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
+    if (session_id := request.cookies.get("session_id")):
+        user_id = current_app.session_manager.get_user_from_session(session_id)
+        if user_id:
+            return redirect(url_for("dashboard"))
+
     form = RegisterForm()
 
     if form.validate_on_submit():
@@ -38,8 +44,10 @@ def register():
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-    if "user_id" in session:
-        return redirect(url_for("dashboard"))
+    if (session_id := request.cookies.get("session_id")):
+        user_id = current_app.session_manager.get_user_from_session(session_id)
+        if user_id:
+            return redirect(url_for("dashboard"))
 
     form = LoginForm()
 
@@ -48,23 +56,34 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
 
         if user is None or not check_password_hash(user.password_hash, form.password.data):
-            flash('Invalid username or password.', 'danger')
-            return redirect(url_for('auth.login'))
+            flash("Invalid username or password.", "danger")
+            return redirect(url_for("auth.login"))
 
-        session.clear()
-        session["user_id"] = user.user_id
-        session["username"] = user.username
-        session.permanent = True
+        user_id = user.user_id
+        print(f"User exists!: {user_id}")
+        session_id = current_app.session_manager.generate_session_id()
+        current_app.session_manager.store_session_in_redis(session_id, user_id)
+
+        print("Success")
         flash("Login successful.", "success")
-        return redirect(url_for("dashboard"))
-        
-        flash('Invalid username or password.', 'danger')
+
+        resp = make_response(redirect(url_for("dashboard")))
+        current_app.session_manager.set_session_cookie(resp, session_id)
+        return resp
     
     return render_template("login.html", form=form)
 
 
 @auth_bp.route('/logout')
 def logout():
-    session.clear()
+    session_id = request.cookies.get('session_id')
+    if session_id:
+        current_app.session_manager.delete_session_from_redis(session_id)
+        print(f"Session {session_id} deleted from Redis.")
+    
+    response = make_response(redirect(url_for("auth.login")))
+    # Optionally, clear the cookie from the browser explicitly
+    response.set_cookie("session_id", "", expires=0, httponly=True, samesite="Lax")
+    print("User logged out and cookie cleared.")
     flash("Logged out successfully.", "info")
-    return redirect(url_for("auth.login"))
+    return response
