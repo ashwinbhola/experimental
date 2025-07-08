@@ -1,6 +1,6 @@
 from functools import wraps
 
-from flask import Blueprint, current_app, render_template, request, redirect, url_for, flash, make_response
+from flask import Blueprint, current_app, g, render_template, request, redirect, url_for, flash, make_response
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from models import db, User
@@ -12,10 +12,8 @@ auth_bp = Blueprint("auth", __name__)
 def logged_in_redirect(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if (session_id := request.cookies.get("session_id")):
-            user_id = current_app.session_manager.get_user_from_session(session_id)
-            if user_id:
-                return redirect(url_for("dashboard"))
+        if getattr(g, "user_id", None):
+            return redirect(url_for("dashboard"))
 
         return f(*args, **kwargs)
     return decorated_function

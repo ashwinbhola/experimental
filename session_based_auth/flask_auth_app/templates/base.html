@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>{% block title %}Flask Auth{% endblock %}</title>
+  <meta name="csrf-token" content="{{ csrf_token }}">
 </head>
 <body>
   {% with messages = get_flashed_messages(with_categories=true) %}
