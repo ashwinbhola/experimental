@@ -5,6 +5,39 @@
   <title>{% block title %}Flask Auth{% endblock %}</title>
   <meta name="csrf-token" content="{{ csrf_token }}">
 </head>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+  document.querySelectorAll("form").forEach((form) => {
+    if (form.method.toLowerCase() === "post") {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        const response = await fetch(form.action || window.location.pathname, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": csrfToken
+          },
+          body: JSON.stringify(data)
+        });
+
+        const text = await response.text();
+
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          alert("Form error: " + text);
+        }
+      });
+    }
+  });
+});
+</script>
 <body>
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}

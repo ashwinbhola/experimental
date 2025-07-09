@@ -47,8 +47,6 @@ def before_request():
     if request.method in ['POST', 'PUT', 'DELETE']:
         token = request.headers.get("X-CSRF-Token")
         if not token or token != request.cookies.get(CSRF_SESSION_ID):
-            print(token)
-            print(request.cookies.get(CSRF_SESSION_ID))
             abort(400, "Invalid or missing CSRF token")
 
 @app.after_request

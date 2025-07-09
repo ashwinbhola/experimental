@@ -7,34 +7,5 @@
   {{ form.password.label }} {{ form.password() }}<br>
   {{ form.submit() }}
 </form>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("login-form");
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
-
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
-
-    const response = await fetch(form.action || window.location.pathname, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken
-      },
-      body: JSON.stringify(data)
-    });
-
-    if (!response.ok) {
-      alert("Login failed");
-    } else {
-      window.location.href = "/";
-    }
-  });
-});
-</script>
+<a href="{{ url_for('auth.register') }}">Don't have an account? Register</a>
 {% endblock %}
