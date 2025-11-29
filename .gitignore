@@ -1,2 +1,7 @@
 *.pem
 __pycache__
+
+.env
+
+venv
+instance/
