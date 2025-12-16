@@ -1,0 +1,4 @@
+mcp
+newsapi-python
+python-dotenv
+google-generativeai
